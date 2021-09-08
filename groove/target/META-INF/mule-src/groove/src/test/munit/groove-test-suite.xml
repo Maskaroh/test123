@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="groove-test-suite.xml" />
+	<munit:test name="groove-test-suite-salesorder-adminTest" doc:id="d1a12d2e-9221-467d-ba66-be6e0b3c8013" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to salesorder-admin" doc:id="17c668f1-2e17-47c8-9252-efa376c6969b" name="salesorder-admin"/>
+		</munit:execution>
+	</munit:test>
+
+
+</mule>

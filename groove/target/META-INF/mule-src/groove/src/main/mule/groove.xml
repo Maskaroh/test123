@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:aggregators="http://www.mulesoft.org/schema/mule/aggregators"
+	xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/aggregators http://www.mulesoft.org/schema/mule/aggregators/current/mule-aggregators.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="9d76ca7f-9082-49ec-8a8a-6f80a172bda5" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="salesorder-admin" doc:id="5c80f073-264d-4147-97b9-198a1bef8628" >
+		<http:listener doc:name="Listener" doc:id="c89f8470-63ee-4ff6-8f0c-73b39f58d592" config-ref="HTTP_Listener_config" path="/admin/{action}/{flow}"/>
+		<logger level="INFO" doc:name="Logger" doc:id="14abcd9b-b1f8-4367-91f2-cbca37e253cb" message="#[payload]"/>
+		<choice doc:name="Choice" doc:id="20b9e7a1-c88b-4d62-b0fe-27694a7d6189" >
+			<when expression='#[attributes.uriParams.action == "enable"]'>
+				<scripting:execute doc:name="Execute" doc:id="cb0b4a2c-b97f-405a-9468-176a8c63346b" engine="groovy">
+					<scripting:code >flow = registry.lookupByName(flow).get();
+if (flow.isStarted())
+flow.stop()
+else 
+flow.start()</scripting:code>
+					<scripting:parameters ><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+	"flow": attributes.uriParams.flow
+}]]]></scripting:parameters>
+				</scripting:execute>
+				<ee:transform doc:name="Transform Message" doc:id="bee294d9-2cdd-431e-810e-2a628f026287" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "Flow enabled."
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[attributes.uriParams.action == "disable"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="37018607-5ca6-4ab8-be46-551377044da5" message="#[payload]"/>
+				<scripting:execute doc:name="Execute" doc:id="627b2b90-da27-41f1-83b6-39710a90dc90" engine="groovy">
+					<scripting:code >flow = registry.lookupByName(flow).get();
+if (flow.isStopped())
+flow.start()
+else 
+flow.stop()</scripting:code>
+					<scripting:parameters ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+	flow: attributes.uriParams.flow
+	
+	}]]]></scripting:parameters>
+				</scripting:execute>
+				<ee:transform doc:name="Transform Message" doc:id="ea4ef9cb-1285-429d-ab43-90710407b3f2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "Flow disabled."
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			
+</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="aa730bda-6a9b-4633-9e7b-6e59084ae3fb" message='#["Admin request - Invalid request. Validate parameters."]'/>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="grooveFlow1" doc:id="84280eea-891a-4352-942c-342e4fa826e5" >
+		<aggregators:aggregator-listener doc:name="Aggregator listener" doc:id="81b70188-309a-454b-9a30-9e2bfe24510f" />
+	</flow>
+	<flow name="grooveFlow" doc:id="c9b21177-4a6e-45a7-bd27-5d35543de82e" >
+		<scheduler doc:name="Scheduler" doc:id="65186b40-31e1-4467-bbd1-a68d6e51eda4" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<set-payload value="#['this is test for the API']" doc:name="Set Payload" doc:id="6801b963-9ed4-407c-bbe0-43883ce315de" mimeType="application/json"/>
+		<logger level="INFO" doc:name="Logger" doc:id="fcf192d8-8a5f-4af1-ad0c-b20852223d2e" message="#[payload]"/>
+	</flow>
+
+</mule>
